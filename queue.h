@@ -23,6 +23,17 @@ typedef struct queue_t{
     Node* head;
     Node* tail;
     unsigned int size;
+    unsigned int max_size;
 } Queue;
+
+Queue* createQueue(int max_size);
+
+void destroyQueue(Queue* queue);
+
+void enqueue(Queue* queue, int data);
+
+int dequeue(Queue* queue, QueueResult* error_code);
+
+
 
 #endif //HW3_OS_MYWORK_QUEUE_H
