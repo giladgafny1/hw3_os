@@ -16,6 +16,7 @@ typedef struct tpool_t
     Queue* requests;
     int max_requests , threads_num;
     pthread_t * threads;
+    char* schedalg;
 
 }Tpool;
 
