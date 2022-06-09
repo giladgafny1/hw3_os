@@ -6,19 +6,21 @@
 #define HW3_OS_MYWORK_THREAD_POOL_H
 #include "queue.h"
 #include <pthread.h>
+#include "segel.h"
 
 typedef struct tpool_t
 {
     pthread_mutex_t requests_m;
     pthread_cond_t request_avail;
     pthread_cond_t block_requests;
-    Queue* working_threads;
+    Queue* requests_handled;
     Queue* requests;
     int max_requests , threads_num;
+    char* schedalg;
 
 }Tpool;
 
-Tpool* CreateTpool(int num_of_threads , int max_requests);
+Tpool* CreateTpool(int num_of_threads , int max_requests, char* schedalg);
 
 void DestroyTpool(Tpool* tpool);
 
