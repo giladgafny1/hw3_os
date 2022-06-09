@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	// Save the relevant info in a buffer and have one of the worker threads 
 	// do the work. 
 	// 
-	HandleRequests(tpool, connfd);
+	ManageRequests(tpool, connfd);
     }
 
 }

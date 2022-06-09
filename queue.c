@@ -76,6 +76,67 @@ int dequeue(Queue* queue)
     return ret_value;
 }
 
+static void removeNode(Queue* queue, Node* node)
+{
+    if(node->prev != NULL)
+    {
+        node->prev->next = node->next;
+    }
+    if(node->next!=NULL)
+    {
+        node->next->prev = node->prev;
+    }
+    if(node==queue->head)
+    {
+        queue->head = node->next;
+    }
+    if(node==queue->tail)
+    {
+        queue->tail = node->prev;
+    }
+    free(node);
+    queue->size--;
+}
+int dequeue_index(Queue* queue, int index)
+{
+    if (queue==NULL)
+        return -1;
+    if (index >= queue->size)
+        return -1;
+    int data_to_return=-1;
+    int curr_idx = 0;
+    Node* itr = queue->head;
+    while(itr!=NULL)
+    {
+        if(curr_idx == index)
+        {
+            data_to_return = itr->data;
+            removeNode(queue, itr);
+        }
+        itr++;
+        curr_idx++;
+    }
+    return data_to_return;
+}
+
+int dequeue_data(Queue* queue, int data)
+{
+    if(queue==NULL)
+        return -1;
+    int data_to_return=-1;
+    Node* itr = queue->head;
+    while(itr!=NULL)
+    {
+        if(itr->data == data)
+        {
+            data_to_return = itr->data;
+            removeNode(queue, itr);
+        }
+        itr++;
+    }
+    return data_to_return;
+}
+
 int queueSize(Queue* queue)
 {
     return queue->size;

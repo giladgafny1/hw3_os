@@ -67,7 +67,7 @@ static void *tpool_worker(void* arg)
     }
 }
 
-void HandleRequests(Tpool* tpool, int connfd)
+void ManageRequests(Tpool* tpool, int connfd)
 {
     char* sched = tpool->schedalg;
     pthread_mutex_lock(&tpool->requests_m);
@@ -85,7 +85,12 @@ void HandleRequests(Tpool* tpool, int connfd)
         }
         else if (strcmp(sched, "random"))
         {
+            int num_to_remove = ((tpool->requests->size)*0.3);
+            int rand_idx = 0;
+            for (int i=0;i<num_to_remove;i++)
+            {
 
+            }
         }
     }
 }

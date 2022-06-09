@@ -6,6 +6,7 @@
 #define HW3_OS_MYWORK_THREAD_POOL_H
 #include "queue.h"
 #include <pthread.h>
+#include "segel.h"
 
 typedef struct tpool_t
 {
@@ -35,6 +36,6 @@ Tpool* CreateTpool(int num_of_threads , int max_requests, char* schedalg);
 void DestroyTpool(Tpool* tpool);
 
 //handling requests recieved (master thread)
-void HandleRequests(Tpool* tpool, int connfd);
+void ManageRequests(Tpool* tpool, int connfd);
 
 #endif //HW3_OS_MYWORK_THREAD_POOL_H

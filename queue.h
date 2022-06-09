@@ -36,6 +36,12 @@ int dequeue(Queue* queue);
 
 int queueSize(Queue* queue);
 
+int dequeue_index(Queue* queue, int index);
+
+int dequeue_data(Queue* queue, int data);
+
+
+
 
 
 
