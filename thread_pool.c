@@ -14,6 +14,7 @@ Tpool* CreateTpool(int num_of_threads, int max_requests)
         return NULL;
     pthread_t  thread;
     tpool->working_threads = createQueue(num_of_threads);
+    tpool->requests = createQueue(max_requests);
     tpool->max_requests = max_requests;
     tpool->threads_num = num_of_threads;
     pthread_mutex_init(&(tpool->requests_m), NULL);
@@ -35,6 +36,15 @@ static void *tpool_worker(void* arg)
     {
         pthread_mutex_lock(&tpool->requests_m);
 
+
+    }
+}
+
+void HandleRequests(Tpool* tpool, int connfd)
+{
+    pthread_mutex_lock(&tpool->requests_m);
+    if(queueSize(tpool->requests) + queueSize(tpool->working_threads) == tpool->max_requests)
+    {
 
     }
 }

@@ -37,12 +37,6 @@ int main(int argc, char *argv[])
 
     getargs(&port,&thread_num, &max_requests , schedalg, argc, argv);
 
-
-
-    Queue* worker_thread , *requests ;
-    worker_thread = createQueue(thread_num);
-    requests = createQueue(max_requests);
-
     // 
     // HW3: Create some threads...
     //

@@ -77,3 +77,8 @@ int dequeue(Queue* queue, QueueResult* error_code)
     queue->size--;
     return ret_value;
 }
+
+int queueSize(Queue* queue)
+{
+    return queue->size;
+}

@@ -13,6 +13,7 @@ typedef struct tpool_t
     pthread_cond_t request_avail;
     pthread_cond_t block_requests;
     Queue* working_threads;
+    Queue* requests;
     int max_requests , threads_num;
 
 }Tpool;
@@ -21,6 +22,7 @@ Tpool* CreateTpool(int num_of_threads , int max_requests);
 
 void DestroyTpool(Tpool* tpool);
 
-
+//handling requests recieved (master thread)
+void HandleRequests(Tpool* tpool, int connfd);
 
 #endif //HW3_OS_MYWORK_THREAD_POOL_H
