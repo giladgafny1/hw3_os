@@ -14,7 +14,7 @@ typedef struct tpool_t
     pthread_cond_t request_avail;
     pthread_cond_t block_requests;
     Queue* requests_handled;
-    Queue* requests;
+    Queue* requests_waiting;
     int max_requests , threads_num;
     pthread_t * threads;
     char* schedalg;

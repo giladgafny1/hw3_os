@@ -13,7 +13,7 @@ Tpool* CreateTpool(int num_of_threads, int max_requests, char* schedalg)
     if (tpool==NULL)
         return NULL;
     tpool->requests_handled = createQueue(num_of_threads);
-    tpool->requests = createQueue(max_requests);
+    tpool->requests_waiting = createQueue(max_requests);
     tpool->max_requests = max_requests;
     tpool->threads_num = num_of_threads;
     tpool->schedalg = schedalg;
@@ -49,11 +49,11 @@ static void *tpool_worker(void* arg)
     while(1)
     {
         pthread_mutex_lock(&tpool->requests_m);
-        while (tpool->requests->size == 0)
+        while (tpool->requests_waiting->size == 0)
         {
             pthread_cond_wait(&(tpool->request_avail) , &(tpool->requests_m));
         }
-        int request_fd = dequeue(tpool->requests);
+        int request_fd = dequeue(tpool->requests_waiting);
         enqueue(tpool->requests_handled,request_fd);
         pthread_mutex_unlock(&tpool->requests_m);
 
@@ -62,8 +62,6 @@ static void *tpool_worker(void* arg)
 
         pthread_cond_signal(&tpool->request_avail);
         pthread_mutex_unlock(&tpool->requests_m);
-
-
     }
 }
 
@@ -71,7 +69,9 @@ void ManageRequests(Tpool* tpool, int connfd)
 {
     char* sched = tpool->schedalg;
     pthread_mutex_lock(&tpool->requests_m);
-    if(queueSize(tpool->requests) + queueSize(tpool->requests_handled) == tpool->max_requests)
+    int requests_waiting = queueSize(tpool->requests_waiting);
+    int requests_handled = queueSize(tpool->requests_handled);
+    if(requests_waiting + requests_handled == tpool->max_requests)
     {
         if(strcmp(sched, "block") == 0)
         {
@@ -83,14 +83,37 @@ void ManageRequests(Tpool* tpool, int connfd)
             close(connfd);
             return;
         }
-        else if (strcmp(sched, "random"))
+        else if (strcmp(sched, "random")==0)
         {
-            int num_to_remove = ((tpool->requests->size)*0.3);
-            int rand_idx = 0;
+            int num_to_remove = (requests_waiting + requests_handled)*0.3;
+            if (requests_waiting == 0)
+            {
+                pthread_mutex_unlock(&tpool->requests_m);
+                close(connfd);
+                return;
+            }
+            int rand_idx = -1;
+            int remove_result = 0;
             for (int i=0;i<num_to_remove;i++)
             {
-
+                rand_idx = rand() % requests_waiting;
+                //if -1 then remove failed
+                if (dequeue_index(tpool->requests_waiting, rand_idx)==-1)
+                    break;
             }
         }
+        else if (strcmp(sched, "dh")==0)
+        {
+            if (requests_waiting == 0)
+            {
+                pthread_mutex_unlock(&tpool->requests_m);
+                close(connfd);
+                return;
+            }
+            dequeue(tpool->requests_waiting);
+        }
     }
+    enqueue(tpool->requests_waiting, connfd);
+    pthread_cond_signal(&tpool->request_avail);
+    pthread_mutex_unlock(&tpool->requests_m);
 }
