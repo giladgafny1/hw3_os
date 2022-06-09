@@ -30,7 +30,7 @@ Thread_args* CreateThreadArgs(Tpool* tpool, int index);
 
 
 
-Tpool* CreateTpool(int num_of_threads , int max_requests);
+Tpool* CreateTpool(int num_of_threads , int max_requests, char* schedalg);
 
 void DestroyTpool(Tpool* tpool);
 
