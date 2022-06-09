@@ -74,5 +74,6 @@ int dequeue(Queue* queue, QueueResult* error_code)
     else
         queue->head = NULL;
     *error_code = QUEUESUCCESS;
+    queue->size--;
     return ret_value;
 }
