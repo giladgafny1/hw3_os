@@ -14,7 +14,7 @@ Node* CreateNode(int data){
     return temp;
 }
 
-Queue* createQueue()
+Queue* createQueue(int max_size)
 {
     Queue* new_queue = (Queue*)malloc(sizeof(Queue));
     if (new_queue==NULL)
@@ -22,6 +22,7 @@ Queue* createQueue()
     new_queue->head = NULL;
     new_queue->tail = NULL;
     new_queue->size = 0;
+    new_queue->max_size = max_size;
     return new_queue;
 }
 
