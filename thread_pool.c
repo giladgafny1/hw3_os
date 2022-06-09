@@ -3,7 +3,7 @@
 //
 
 #include "thread_pool.h"
-
+#include "request.h"
 static void *tpool_worker(void* arg);
 
 
@@ -12,29 +12,54 @@ Tpool* CreateTpool(int num_of_threads, int max_requests)
     Tpool* tpool =(Tpool*)malloc(sizeof(Tpool));
     if (tpool==NULL)
         return NULL;
-    pthread_t  thread;
-    tpool->working_threads = createQueue(num_of_threads);
+    tpool->requests_handled = createQueue(num_of_threads);
     tpool->requests = createQueue(max_requests);
     tpool->max_requests = max_requests;
     tpool->threads_num = num_of_threads;
     pthread_mutex_init(&(tpool->requests_m), NULL);
     pthread_cond_init(&(tpool->block_requests), NULL);
     pthread_cond_init(&(tpool->request_avail), NULL);
-
+    tpool->threads = (pthread_t*)malloc(sizeof (pthread_t) * num_of_threads);
+    Thread_args* thread_args;
     for(int i =0 ; i<num_of_threads ; i++)
     {
-        pthread_create(&thread, NULL ,tpool_worker , tpool);
+        thread_args = CreateThreadArgs(tpool ,i );
+        pthread_create(&tpool->threads[i], NULL ,tpool_worker , thread_args);
     }
     return tpool;
 }
 
+Thread_args* CreateThreadArgs(Tpool* tpool, int index){
+    Thread_args * thread_args = (Thread_args*)malloc(sizeof(Thread_args));
+    if( thread_args == NULL)
+        return NULL;
+    thread_args->tpool = tpool;
+    thread_args->thread_index = index;
+    return thread_args;
+}
+
 static void *tpool_worker(void* arg)
 {
-    Tpool* tpool = arg;
+    Thread_args* thread_args = arg;
+    Tpool* tpool = thread_args->tpool;
+    int index_p = thread_args->thread_index;
 
     while(1)
     {
         pthread_mutex_lock(&tpool->requests_m);
+        while (tpool->requests->size == 0)
+        {
+            pthread_cond_wait(&(tpool->request_avail) , &(tpool->requests_m));
+        }
+        int request_fd = dequeue(tpool->requests);
+        enqueue(tpool->requests_handled,request_fd);
+        pthread_mutex_unlock(&tpool->requests_m);
+
+        requestHandle(request_fd);
+
+
+        pthread_cond_signal(&tpool->request_avail);
+        pthread_mutex_unlock(&tpool->requests_m);
 
 
     }
@@ -43,7 +68,7 @@ static void *tpool_worker(void* arg)
 void HandleRequests(Tpool* tpool, int connfd)
 {
     pthread_mutex_lock(&tpool->requests_m);
-    if(queueSize(tpool->requests) + queueSize(tpool->working_threads) == tpool->max_requests)
+    if(queueSize(tpool->requests) + queueSize(tpool->requests_handled) == tpool->max_requests)
     {
 
     }

@@ -58,13 +58,12 @@ void enqueue(Queue* queue, int data)
     queue->size++;
 }
 
-int dequeue(Queue* queue, QueueResult* error_code)
+int dequeue(Queue* queue)
 {
     if (queue==NULL)
         return -1;
     if (queue->tail == NULL)
     {
-        *error_code = QUEUEEMPTY;
         return -1;
     }
     int ret_value = queue->tail->data;
@@ -73,7 +72,6 @@ int dequeue(Queue* queue, QueueResult* error_code)
         free(queue->tail->next);
     else
         queue->head = NULL;
-    *error_code = QUEUESUCCESS;
     queue->size--;
     return ret_value;
 }

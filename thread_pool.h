@@ -12,11 +12,22 @@ typedef struct tpool_t
     pthread_mutex_t requests_m;
     pthread_cond_t request_avail;
     pthread_cond_t block_requests;
-    Queue* working_threads;
+    Queue* requests_handled;
     Queue* requests;
     int max_requests , threads_num;
+    pthread_t * threads;
 
 }Tpool;
+
+typedef  struct thread_args
+{
+    Tpool* tpool;
+    int thread_index;
+}Thread_args;
+
+Thread_args* CreateThreadArgs(Tpool* tpool, int index);
+
+
 
 Tpool* CreateTpool(int num_of_threads , int max_requests);
 

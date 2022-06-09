@@ -32,7 +32,7 @@ void destroyQueue(Queue* queue);
 
 void enqueue(Queue* queue, int data);
 
-int dequeue(Queue* queue, QueueResult* error_code);
+int dequeue(Queue* queue);
 
 int queueSize(Queue* queue);
 
