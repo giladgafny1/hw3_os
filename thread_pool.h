@@ -12,11 +12,12 @@ typedef struct tpool_t
     pthread_mutex_t requests_m;
     pthread_cond_t request_avail;
     pthread_cond_t block_requests;
-    Queue aviable_threads;
+    Queue* working_threads;
+    int max_requests , threads_num;
 
 }Tpool;
 
-Tpool* CreateTpool(int num_of_threads);
+Tpool* CreateTpool(int num_of_threads , int max_requests);
 
 void DestroyTpool(Tpool* tpool);
 
