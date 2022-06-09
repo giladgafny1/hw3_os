@@ -2,6 +2,7 @@
 #include "request.h"
 #include <pthread.h>
 #include "queue.h"
+#include "thread_pool.h"
 
 
 // 
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in clientaddr;
 
     getargs(&port,&thread_num, &max_requests , schedalg, argc, argv);
-
+    Tpool* tpool = CreateTpool(thread_num, max_requests, schedalg);
     // 
     // HW3: Create some threads...
     //
@@ -51,9 +52,7 @@ int main(int argc, char *argv[])
 	// Save the relevant info in a buffer and have one of the worker threads 
 	// do the work. 
 	// 
-	requestHandle(connfd);
-
-	Close(connfd);
+	HandleRequests(tpool, connfd);
     }
 
 }
