@@ -44,7 +44,7 @@ static void *tpool_worker(void* arg)
 {
     Thread_args* thread_args = arg;
     Tpool* tpool = thread_args->tpool;
-    int index_p = thread_args->thread_index;
+    //int index_p = thread_args->thread_index;
 
     while(1)
     {
@@ -98,7 +98,6 @@ void ManageRequests(Tpool* tpool, int connfd)
                 return;
             }
             int rand_idx = -1;
-            int remove_result = 0;
             for (int i=0;i<num_to_remove;i++)
             {
                 rand_idx = rand() % requests_waiting;

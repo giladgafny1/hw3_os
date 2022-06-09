@@ -33,10 +33,11 @@ void getargs(int *port, int  *thread_num, int* max_requests, char* schedalg , in
 int main(int argc, char *argv[])
 {
     int listenfd, connfd, port, clientlen, thread_num , max_requests;
-    char* schedalg;
+    char schedalg[7];
     struct sockaddr_in clientaddr;
 
     getargs(&port,&thread_num, &max_requests , schedalg, argc, argv);
+
     Tpool* tpool = CreateTpool(thread_num, max_requests, schedalg);
     // 
     // HW3: Create some threads...

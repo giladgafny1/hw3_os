@@ -132,7 +132,7 @@ int dequeue_data(Queue* queue, int data)
             data_to_return = itr->data;
             removeNode(queue, itr);
         }
-        itr++;
+        itr=itr->next;
     }
     return data_to_return;
 }
