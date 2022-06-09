@@ -109,7 +109,19 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs)
    // The CGI script has to finish writing out the header.
    sprintf(buf, "HTTP/1.0 200 OK\r\n");
    sprintf(buf, "%sServer: OS-HW3 Web Server\r\n", buf);
+   /*
+   sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf);
 
+    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf);
+
+    sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf);
+
+    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf);
+
+    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf);
+
+    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf);
+   */
    Rio_writen(fd, buf, strlen(buf));
 
    if (Fork() == 0) {

@@ -57,8 +57,13 @@ static void *tpool_worker(void* arg)
         enqueue(tpool->requests_handled,request_fd);
         pthread_mutex_unlock(&tpool->requests_m);
 
-        requestHandle(request_fd);
+        struct timeval current_time;
+        gettimeofday(&current_time, NULL);
 
+        requestHandle(request_fd);
+        close(request_fd);
+        pthread_mutex_lock(&tpool->requests_m);
+        dequeue_data(tpool->requests_handled ,request_fd ) ;// move out the data
 
         pthread_cond_signal(&tpool->request_avail);
         pthread_mutex_unlock(&tpool->requests_m);
