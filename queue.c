@@ -4,10 +4,11 @@
 
 #include "queue.h"
 
-Node* CreateNode(int data){
+Node* CreateNode(int data , struct timeval time){
     Node* temp = (Node*)(malloc(sizeof(Node)));
     if (temp==NULL)
         return NULL;
+    temp->time = time;
     temp->data = data;
     temp->next = NULL;
     temp->prev = NULL;
@@ -42,20 +43,25 @@ void destroyQueue(Queue* queue)
     }
     free(queue);
 }
-void enqueue(Queue* queue, int data)
+void enqueue(Queue* queue, int data , struct timeval time)
 {
     if (queue==NULL)
         return;
     if(queue->head==NULL) {
-        queue->head = CreateNode(data);
+        queue->head = CreateNode(data , time);
         queue->tail = queue->head;
         queue->size++;
         return;
     }
-    queue->head->prev = CreateNode(data);
+    queue->head->prev = CreateNode(data, time);
     queue->head->prev->next = queue->head;
     queue->head = queue->head->prev;
     queue->size++;
+}
+
+struct timeval getTimeDequeue(Queue* queue)
+{
+    return queue->tail->time;
 }
 
 int dequeue(Queue* queue)

@@ -27,8 +27,17 @@ typedef  struct thread_args
     int thread_index;
 }Thread_args;
 
+typedef  struct thread_stats
+{
+    int thread_count;
+    int thread_dynamic;
+    int thread_static;
+    int thread_id;
+}Stats;
+
 Thread_args* CreateThreadArgs(Tpool* tpool, int index);
 
+Stats* CreateThreadStats(int id);
 
 
 Tpool* CreateTpool(int num_of_threads , int max_requests, char* schedalg);

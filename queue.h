@@ -15,6 +15,7 @@ typedef enum queue_result_t{
 
 typedef struct node_t {
     int data;
+    struct timeval time;
     struct node_t* next;
     struct node_t* prev;
 } Node;
@@ -30,7 +31,9 @@ Queue* createQueue(int max_size);
 
 void destroyQueue(Queue* queue);
 
-void enqueue(Queue* queue, int data);
+void enqueue(Queue* queue, int data , struct timeval time);
+
+struct timeval getTimeDequeue(Queue* queue);
 
 int dequeue(Queue* queue);
 

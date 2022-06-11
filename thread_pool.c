@@ -40,11 +40,23 @@ Thread_args* CreateThreadArgs(Tpool* tpool, int index){
     return thread_args;
 }
 
+Stats* CreateThreadStats(int id)
+{
+    Stats* thread_stats = (Stats*)malloc(sizeof(Stats));
+    if( thread_stats == NULL)
+        return NULL;
+    thread_stats->thread_count = 0;
+    thread_stats->thread_dynamic = 0;
+    thread_stats->thread_static = 0;
+    thread_stats->thread_id = id;
+    return thread_stats;
+}
+
 static void *tpool_worker(void* arg)
 {
     Thread_args* thread_args = arg;
     Tpool* tpool = thread_args->tpool;
-    //int index_p = thread_args->thread_index;
+    Stats * thread_stats = CreateThreadStats(thread_args->thread_index);
 
     while(1)
     {
@@ -53,19 +65,24 @@ static void *tpool_worker(void* arg)
         {
             pthread_cond_wait(&(tpool->request_avail) , &(tpool->requests_m));
         }
-        int request_fd = dequeue(tpool->requests_waiting);
-        enqueue(tpool->requests_handled,request_fd);
-        pthread_mutex_unlock(&tpool->requests_m);
-
-        struct timeval current_time;
+        struct timeval current_time , arrival_time , dispatch_time;
+        arrival_time = getTimeDequeue(tpool->requests_waiting);
         gettimeofday(&current_time, NULL);
 
-        requestHandle(request_fd);
+        int request_fd = dequeue(tpool->requests_waiting);
+        enqueue(tpool->requests_handled,request_fd ,current_time );
+        pthread_mutex_unlock(&tpool->requests_m);
+
+
+        timersub(&arrival_time, & current_time, &dispatch_time);
+
+        requestHandle(request_fd , thread_stats , arrival_time, dispatch_time);
         close(request_fd);
+
         pthread_mutex_lock(&tpool->requests_m);
         dequeue_data(tpool->requests_handled ,request_fd ) ;// move out the data
 
-        pthread_cond_signal(&tpool->request_avail);
+        pthread_cond_signal(&tpool->block_requests);
         pthread_mutex_unlock(&tpool->requests_m);
     }
 }
@@ -80,7 +97,8 @@ void ManageRequests(Tpool* tpool, int connfd)
     {
         if(strcmp(sched, "block") == 0)
         {
-            pthread_cond_wait(&tpool->block_requests, &tpool->requests_m);
+            while(requests_waiting + requests_handled == tpool->max_requests)
+                 pthread_cond_wait(&tpool->block_requests, &tpool->requests_m);
         }
         else if (strcmp(sched, "dt") == 0)
         {
@@ -117,7 +135,10 @@ void ManageRequests(Tpool* tpool, int connfd)
             dequeue(tpool->requests_waiting);
         }
     }
-    enqueue(tpool->requests_waiting, connfd);
+    struct timeval current_time;
+    gettimeofday(&current_time, NULL);
+
+    enqueue(tpool->requests_waiting, connfd , current_time);
     pthread_cond_signal(&tpool->request_avail);
     pthread_mutex_unlock(&tpool->requests_m);
 }
