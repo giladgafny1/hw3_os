@@ -126,7 +126,8 @@ void ManageRequests(Tpool* tpool, int connfd)
         }
         else if (strcmp(sched, "dh")==0)
         {
-            if (requests_waiting == 0) {
+            if (requests_waiting == 0)
+            {
                 pthread_mutex_unlock(&tpool->requests_m);
                 close(connfd);
                 return;
