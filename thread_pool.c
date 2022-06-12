@@ -129,6 +129,7 @@ static int HandleOverload(Tpool* tpool, int connfd, int requests_waiting, int re
             return 0;
         }
         close(dequeue(tpool->requests_waiting));
+        return 1;
     }
     return 0;
 }
