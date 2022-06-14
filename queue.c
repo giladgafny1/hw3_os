@@ -118,8 +118,9 @@ int dequeue_index(Queue* queue, int index)
         {
             data_to_return = itr->data;
             removeNode(queue, itr);
+            return data_to_return;
         }
-        itr++;
+        itr=itr->next;
         curr_idx++;
     }
     return data_to_return;
@@ -137,6 +138,7 @@ int dequeue_data(Queue* queue, int data)
         {
             data_to_return = itr->data;
             removeNode(queue, itr);
+            return data_to_return;
         }
         itr=itr->next;
     }
