@@ -123,7 +123,7 @@ static int HandleOverload(Tpool* tpool, int connfd, schedAlg sched)
     {
         pthread_mutex_lock(&tpool->requests_m);
         int requests_waiting = queueSize(tpool->requests_waiting);
-        int num_to_remove = ceil((double)(requests_waiting+tpool->num_handled)*0.3);
+        int num_to_remove = ceil((double)(requests_waiting)*0.3);
         if (requests_waiting == 0)
         {
             pthread_mutex_unlock(&tpool->requests_m);
@@ -135,7 +135,7 @@ static int HandleOverload(Tpool* tpool, int connfd, schedAlg sched)
         int fd_to_close = -1;
         for (int i=0;i<num_to_remove;i++)
         {
-            rand_idx = rand() % requests_waiting;
+            rand_idx = rand() % (requests_waiting -i);
             //if -1 then remove failed, so no more requests to remove
             pthread_mutex_lock(&tpool->requests_m);
             fd_to_close = dequeue_index(tpool->requests_waiting, rand_idx);

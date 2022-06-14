@@ -30,8 +30,6 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
    printf("%s", buf);
 
    sprintf(buf, "Content-Length: %lu\r\n", strlen(body));
-   Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
 
    sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf , arrival.tv_sec , arrival.tv_usec);
    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf , dispatch.tv_sec , dispatch.tv_usec);
@@ -186,6 +184,8 @@ void requestHandle(int fd , Stats* thread_stats , struct timeval arrival , struc
    char filename[MAXLINE], cgiargs[MAXLINE];
    rio_t rio;
 
+   thread_stats->thread_count++;
+
    Rio_readinitb(&rio, fd);
    Rio_readlineb(&rio, buf, MAXLINE);
    sscanf(buf, "%s %s %s", method, uri, version);
@@ -205,7 +205,6 @@ void requestHandle(int fd , Stats* thread_stats , struct timeval arrival , struc
    }
 
    if (is_static) {
-       thread_stats->thread_count++;
       if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode)) {
          requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not read this file", thread_stats , arrival , dispatch);
          return;
@@ -213,7 +212,6 @@ void requestHandle(int fd , Stats* thread_stats , struct timeval arrival , struc
       thread_stats->thread_static++;
       requestServeStatic(fd, filename, sbuf.st_size , thread_stats , arrival , dispatch);
    } else {
-       thread_stats->thread_count++;
       if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) {
          requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program" , thread_stats , arrival , dispatch);
          return;
