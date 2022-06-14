@@ -74,7 +74,7 @@ static void *tpool_worker(void* arg)
         pthread_mutex_unlock(&tpool->requests_m);
 
 
-        timersub(&arrival_time, & current_time, &dispatch_time);
+        timersub(&current_time, & arrival_time, &dispatch_time);
 
         requestHandle(request_fd , thread_stats , arrival_time, dispatch_time);
         close(request_fd);
