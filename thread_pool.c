@@ -13,10 +13,11 @@ Tpool* CreateTpool(int num_of_threads, int max_requests, char* schedalg)
     Tpool* tpool =(Tpool*)malloc(sizeof(Tpool));
     if (tpool==NULL)
         return NULL;
-    tpool->requests_handled = createQueue(num_of_threads);
+    //tpool->requests_handled = createQueue(num_of_threads);
     tpool->requests_waiting = createQueue(max_requests);
     tpool->max_requests = max_requests;
     tpool->threads_num = num_of_threads;
+    tpool->num_handled = 0;
     if(strcmp(schedalg, "block") == 0)
         tpool->schedalg=Block;
     else if (strcmp(schedalg, "dt") == 0)
@@ -85,7 +86,8 @@ static void *tpool_worker(void* arg)
         pthread_mutex_unlock(&tpool->requests_m);
 
         pthread_mutex_lock(&tpool->handled_m);
-        enqueue(tpool->requests_handled,request_fd ,current_time );
+        tpool->num_handled++;
+        //enqueue(tpool->requests_handled,request_fd ,current_time );
         pthread_mutex_unlock(&tpool->handled_m);
 
 
@@ -95,8 +97,8 @@ static void *tpool_worker(void* arg)
         Close(request_fd);
 
         pthread_mutex_lock(&tpool->handled_m);
-        dequeue_data(tpool->requests_handled ,request_fd ) ;// move out the data
-
+        //dequeue_data(tpool->requests_handled ,request_fd ) ;// move out the data
+        tpool->num_handled--;
         pthread_cond_signal(&tpool->block_requests);
         pthread_mutex_unlock(&tpool->handled_m);
     }
@@ -107,7 +109,7 @@ static int HandleOverload(Tpool* tpool, int connfd, schedAlg sched)
     if(sched == Block)
     {
         pthread_mutex_lock(&tpool->requests_m);
-        while(queueSize(tpool->requests_waiting) + queueSize(tpool->requests_handled) == tpool->max_requests)
+        while(queueSize(tpool->requests_waiting) + tpool->num_handled == tpool->max_requests)
             pthread_cond_wait(&tpool->block_requests, &tpool->requests_m);
         pthread_mutex_unlock(&tpool->requests_m);
         return 1;
@@ -121,7 +123,7 @@ static int HandleOverload(Tpool* tpool, int connfd, schedAlg sched)
     {
         pthread_mutex_lock(&tpool->requests_m);
         int requests_waiting = queueSize(tpool->requests_waiting);
-        int num_to_remove = ceil((double)(requests_waiting+queueSize(tpool->requests_handled))*0.3);
+        int num_to_remove = ceil((double)(requests_waiting+tpool->num_handled)*0.3);
         if (requests_waiting == 0)
         {
             pthread_mutex_unlock(&tpool->requests_m);
@@ -165,7 +167,7 @@ void ManageRequests(Tpool* tpool, int connfd)
     schedAlg sched = tpool->schedalg;
     pthread_mutex_lock(&tpool->requests_m);
     int requests_waiting = queueSize(tpool->requests_waiting);
-    int requests_handled = queueSize(tpool->requests_handled);
+    int requests_handled = tpool->num_handled;
     pthread_mutex_unlock(&tpool->requests_m);
     if(requests_waiting + requests_handled == tpool->max_requests)
     {

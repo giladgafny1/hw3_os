@@ -159,7 +159,7 @@ void requestServeStatic(int fd, char *filename, int filesize , Stats* thread_sta
    sprintf(buf, "HTTP/1.0 200 OK\r\n");
    sprintf(buf, "%sServer: OS-HW3 Web Server\r\n", buf);
    sprintf(buf, "%sContent-Length: %d\r\n", buf, filesize);
-   sprintf(buf, "%sContent-Type: %s\r\n\r\n", buf, filetype);
+   sprintf(buf, "%sContent-Type: %s\r\n", buf, filetype);
    sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf , arrival.tv_sec , arrival.tv_usec);
    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf , dispatch.tv_sec , dispatch.tv_usec);
    sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf , thread_stats->thread_id);

@@ -21,9 +21,9 @@ typedef struct tpool_t
     pthread_mutex_t handled_m;
     pthread_cond_t request_avail;
     pthread_cond_t block_requests;
-    Queue* requests_handled;
+    //Queue* requests_handled;
     Queue* requests_waiting;
-    int max_requests , threads_num;
+    int max_requests , threads_num , num_handled;
     pthread_t * threads;
     schedAlg schedalg;
 
