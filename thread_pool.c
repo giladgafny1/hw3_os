@@ -88,50 +88,58 @@ static void *tpool_worker(void* arg)
     }
 }
 //returns 1 if can continue 0 if not
-static int HandleOverload(Tpool* tpool, int connfd, int requests_waiting, int requests_handled, char* sched)
+static int HandleOverload(Tpool* tpool, int connfd, char* sched)
 {
     if(strcmp(sched, "block") == 0)
     {
-        while(requests_waiting + requests_handled == tpool->max_requests)
+        pthread_mutex_lock(&tpool->requests_m);
+        while(queueSize(tpool->requests_waiting) + queueSize(tpool->requests_handled) == tpool->max_requests)
             pthread_cond_wait(&tpool->block_requests, &tpool->requests_m);
         return 1;
     }
     else if (strcmp(sched, "dt") == 0)
     {
-        pthread_mutex_unlock(&tpool->requests_m);
         Close(connfd);
         return 0;
     }
     else if (strcmp(sched, "random")==0)
     {
-        int num_to_remove = ceil((double)(requests_waiting+requests_handled)*0.3);
+        pthread_mutex_lock(&tpool->requests_m);
+        int requests_waiting = queueSize(tpool->requests_waiting);
+        int num_to_remove = ceil((double)(requests_waiting+queueSize(tpool->requests_handled))*0.3);
         if (requests_waiting == 0)
         {
             pthread_mutex_unlock(&tpool->requests_m);
             Close(connfd);
             return 0;
         }
+        pthread_mutex_unlock(&tpool->requests_m);
         int rand_idx = -1;
         int fd_to_close = -1;
         for (int i=0;i<num_to_remove;i++)
         {
             rand_idx = rand() % requests_waiting;
             //if -1 then remove failed, so no more requests to remove
+            pthread_mutex_lock(&tpool->requests_m);
             fd_to_close = dequeue_index(tpool->requests_waiting, rand_idx);
+            pthread_mutex_unlock(&tpool->requests_m);
             if (fd_to_close==-1)
                 break;
             Close(fd_to_close);
         }
+
         return 1;
     }
     else if (strcmp(sched, "dh")==0)
     {
-        if (requests_waiting == 0)
+        pthread_mutex_lock(&tpool->requests_m);
+        if (queueSize(tpool->requests_waiting) == 0)
         {
             pthread_mutex_unlock(&tpool->requests_m);
             Close(connfd);
             return 0;
         }
+        pthread_mutex_unlock(&tpool->requests_m);
         Close(dequeue(tpool->requests_waiting));
         return 1;
     }
@@ -143,14 +151,16 @@ void ManageRequests(Tpool* tpool, int connfd)
     pthread_mutex_lock(&tpool->requests_m);
     int requests_waiting = queueSize(tpool->requests_waiting);
     int requests_handled = queueSize(tpool->requests_handled);
+    pthread_mutex_unlock(&tpool->requests_m);
     if(requests_waiting + requests_handled == tpool->max_requests)
     {
-        if(HandleOverload(tpool, connfd, requests_waiting, requests_handled, sched)==0)
+        if(HandleOverload(tpool, connfd, sched)==0)
             return;
     }
     struct timeval current_time;
     gettimeofday(&current_time, NULL);
 
+    pthread_mutex_lock(&tpool->requests_m);
     enqueue(tpool->requests_waiting, connfd , current_time);
     pthread_cond_signal(&tpool->request_avail);
     pthread_mutex_unlock(&tpool->requests_m);
