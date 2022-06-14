@@ -11,6 +11,7 @@
 typedef struct tpool_t
 {
     pthread_mutex_t requests_m;
+    pthread_mutex_t handled_m;
     pthread_cond_t request_avail;
     pthread_cond_t block_requests;
     Queue* requests_handled;

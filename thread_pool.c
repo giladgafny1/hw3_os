@@ -20,6 +20,7 @@ Tpool* CreateTpool(int num_of_threads, int max_requests, char* schedalg)
     tpool->schedalg = schedalg;
     //add test to see if schedalg is legeal?
     pthread_mutex_init(&(tpool->requests_m), NULL);
+    pthread_mutex_init(&(tpool->handled_m), NULL);
     pthread_cond_init(&(tpool->block_requests), NULL);
     pthread_cond_init(&(tpool->request_avail), NULL);
     tpool->threads = (pthread_t*)malloc(sizeof (pthread_t) * num_of_threads);
@@ -80,11 +81,11 @@ static void *tpool_worker(void* arg)
         requestHandle(request_fd , thread_stats , arrival_time, dispatch_time);
         Close(request_fd);
 
-        pthread_mutex_lock(&tpool->requests_m);
+        pthread_mutex_lock(&tpool->handled_m);
         dequeue_data(tpool->requests_handled ,request_fd ) ;// move out the data
 
         pthread_cond_signal(&tpool->block_requests);
-        pthread_mutex_unlock(&tpool->requests_m);
+        pthread_mutex_unlock(&tpool->handled_m);
     }
 }
 //returns 1 if can continue 0 if not
