@@ -17,7 +17,14 @@ Tpool* CreateTpool(int num_of_threads, int max_requests, char* schedalg)
     tpool->requests_waiting = createQueue(max_requests);
     tpool->max_requests = max_requests;
     tpool->threads_num = num_of_threads;
-    tpool->schedalg = schedalg;
+    if(strcmp(schedalg, "block") == 0)
+        tpool->schedalg=Block;
+    else if (strcmp(schedalg, "dt") == 0)
+        tpool->schedalg=Dt;
+    else if (strcmp(schedalg, "random") == 0)
+        tpool->schedalg = Random;
+    else if (strcmp(schedalg, "dh") == 0)
+        tpool->schedalg = Dh;
     //add test to see if schedalg is legeal?
     pthread_mutex_init(&(tpool->requests_m), NULL);
     pthread_mutex_init(&(tpool->handled_m), NULL);
@@ -95,21 +102,22 @@ static void *tpool_worker(void* arg)
     }
 }
 //returns 1 if can continue 0 if not
-static int HandleOverload(Tpool* tpool, int connfd, char* sched)
+static int HandleOverload(Tpool* tpool, int connfd, schedAlg sched)
 {
-    if(strcmp(sched, "block") == 0)
+    if(sched == Block)
     {
         pthread_mutex_lock(&tpool->requests_m);
         while(queueSize(tpool->requests_waiting) + queueSize(tpool->requests_handled) == tpool->max_requests)
             pthread_cond_wait(&tpool->block_requests, &tpool->requests_m);
+        pthread_mutex_unlock(&tpool->requests_m);
         return 1;
     }
-    else if (strcmp(sched, "dt") == 0)
+    else if (sched == Dt)
     {
         Close(connfd);
         return 0;
     }
-    else if (strcmp(sched, "random")==0)
+    else if (sched == Random)
     {
         pthread_mutex_lock(&tpool->requests_m);
         int requests_waiting = queueSize(tpool->requests_waiting);
@@ -137,7 +145,7 @@ static int HandleOverload(Tpool* tpool, int connfd, char* sched)
 
         return 1;
     }
-    else if (strcmp(sched, "dh")==0)
+    else if (sched == Dh)
     {
         pthread_mutex_lock(&tpool->requests_m);
         if (queueSize(tpool->requests_waiting) == 0)
@@ -154,7 +162,7 @@ static int HandleOverload(Tpool* tpool, int connfd, char* sched)
 }
 void ManageRequests(Tpool* tpool, int connfd)
 {
-    char* sched = tpool->schedalg;
+    schedAlg sched = tpool->schedalg;
     pthread_mutex_lock(&tpool->requests_m);
     int requests_waiting = queueSize(tpool->requests_waiting);
     int requests_handled = queueSize(tpool->requests_handled);

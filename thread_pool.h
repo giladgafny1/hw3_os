@@ -8,6 +8,13 @@
 #include <pthread.h>
 #include "segel.h"
 
+typedef enum schedalg_t{
+    Block,
+    Dt,
+    Random,
+    Dh
+} schedAlg;
+
 typedef struct tpool_t
 {
     pthread_mutex_t requests_m;
@@ -18,7 +25,7 @@ typedef struct tpool_t
     Queue* requests_waiting;
     int max_requests , threads_num;
     pthread_t * threads;
-    char* schedalg;
+    schedAlg schedalg;
 
 }Tpool;
 
