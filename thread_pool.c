@@ -67,13 +67,19 @@ static void *tpool_worker(void* arg)
         {
             pthread_cond_wait(&(tpool->request_avail) , &(tpool->requests_m));
         }
+
+
+
         struct timeval current_time , arrival_time , dispatch_time;
         arrival_time = getTimeDequeue(tpool->requests_waiting);
         gettimeofday(&current_time, NULL);
 
         int request_fd = dequeue(tpool->requests_waiting);
-        enqueue(tpool->requests_handled,request_fd ,current_time );
         pthread_mutex_unlock(&tpool->requests_m);
+
+        pthread_mutex_lock(&tpool->handled_m);
+        enqueue(tpool->requests_handled,request_fd ,current_time );
+        pthread_mutex_unlock(&tpool->handled_m);
 
 
         timersub(& current_time,&arrival_time, &dispatch_time);
