@@ -17,7 +17,7 @@ all: server client output.cgi
 	-cp output.cgi favicon.ico home.html public
 
 server: server.o request.o segel.o thread_pool.o queue.o
-	$(CC) $(CFLAGS) -o server server.o request.o segel.o thread_pool.o queue.o $(LIBS)
+	$(CC) $(CFLAGS) -o server server.o request.o segel.o thread_pool.o queue.o $(LIBS) -lm
 
 client: client.o segel.o
 	$(CC) $(CFLAGS) -o client client.o segel.o

@@ -4,6 +4,7 @@
 
 #include "thread_pool.h"
 #include "request.h"
+#include "math.h"
 static void *tpool_worker(void* arg);
 
 
@@ -74,10 +75,10 @@ static void *tpool_worker(void* arg)
         pthread_mutex_unlock(&tpool->requests_m);
 
 
-        timersub(&current_time, & arrival_time, &dispatch_time);
+        timersub(& current_time,&arrival_time, &dispatch_time);
 
         requestHandle(request_fd , thread_stats , arrival_time, dispatch_time);
-        close(request_fd);
+        Close(request_fd);
 
         pthread_mutex_lock(&tpool->requests_m);
         dequeue_data(tpool->requests_handled ,request_fd ) ;// move out the data
@@ -98,25 +99,28 @@ static int HandleOverload(Tpool* tpool, int connfd, int requests_waiting, int re
     else if (strcmp(sched, "dt") == 0)
     {
         pthread_mutex_unlock(&tpool->requests_m);
-        close(connfd);
+        Close(connfd);
         return 0;
     }
     else if (strcmp(sched, "random")==0)
     {
-        int num_to_remove = (requests_waiting + requests_handled)*0.3;
+        int num_to_remove = ceil((double)(requests_waiting+requests_handled)*0.3);
         if (requests_waiting == 0)
         {
             pthread_mutex_unlock(&tpool->requests_m);
-            close(connfd);
+            Close(connfd);
             return 0;
         }
         int rand_idx = -1;
+        int fd_to_close = -1;
         for (int i=0;i<num_to_remove;i++)
         {
             rand_idx = rand() % requests_waiting;
             //if -1 then remove failed, so no more requests to remove
-            if (dequeue_index(tpool->requests_waiting, rand_idx)==-1)
+            fd_to_close = dequeue_index(tpool->requests_waiting, rand_idx);
+            if (fd_to_close==-1)
                 break;
+            Close(fd_to_close);
         }
         return 1;
     }
@@ -125,10 +129,10 @@ static int HandleOverload(Tpool* tpool, int connfd, int requests_waiting, int re
         if (requests_waiting == 0)
         {
             pthread_mutex_unlock(&tpool->requests_m);
-            close(connfd);
+            Close(connfd);
             return 0;
         }
-        close(dequeue(tpool->requests_waiting));
+        Close(dequeue(tpool->requests_waiting));
         return 1;
     }
     return 0;
