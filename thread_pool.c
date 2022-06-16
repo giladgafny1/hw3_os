@@ -162,7 +162,7 @@ static int HandleOverload(Tpool* tpool, int connfd, schedAlg sched)
     }
     return 0;
 }
-void ManageRequests(Tpool* tpool, int connfd)
+void ManageRequests(Tpool* tpool, int connfd , struct timeval current_time)
 {
     schedAlg sched = tpool->schedalg;
     pthread_mutex_lock(&tpool->requests_m);
@@ -174,8 +174,7 @@ void ManageRequests(Tpool* tpool, int connfd)
         if(HandleOverload(tpool, connfd, sched)==0)
             return;
     }
-    struct timeval current_time;
-    gettimeofday(&current_time, NULL);
+
 
     pthread_mutex_lock(&tpool->requests_m);
     enqueue(tpool->requests_waiting, connfd , current_time);

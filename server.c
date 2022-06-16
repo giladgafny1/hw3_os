@@ -47,13 +47,14 @@ int main(int argc, char *argv[])
     while (1) {
 	clientlen = sizeof(clientaddr);
 	connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
-
+    struct timeval current_time;
+    gettimeofday(&current_time, NULL);
 	// 
 	// HW3: In general, don't handle the request in the main thread.
 	// Save the relevant info in a buffer and have one of the worker threads 
 	// do the work. 
 	// 
-	ManageRequests(tpool, connfd);
+	ManageRequests(tpool, connfd , current_time);
     }
 
 }

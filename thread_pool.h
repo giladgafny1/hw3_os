@@ -53,6 +53,6 @@ Tpool* CreateTpool(int num_of_threads , int max_requests, char* schedalg);
 void DestroyTpool(Tpool* tpool);
 
 //handling requests recieved (master thread)
-void ManageRequests(Tpool* tpool, int connfd);
+void ManageRequests(Tpool* tpool, int connfd , struct timeval current_time);
 
 #endif //HW3_OS_MYWORK_THREAD_POOL_H
